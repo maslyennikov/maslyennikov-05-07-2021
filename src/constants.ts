@@ -10,6 +10,7 @@ export const Colors: Record<string, string> = {
   opacityGreen: "rgba(13, 136, 100, 0.2)",
   transparent: "rgba(255, 0, 0, 0)",
   lightgrey: "rgba(53, 63, 79)",
+  blue: "#111827"
 };
 
 export enum Direction {

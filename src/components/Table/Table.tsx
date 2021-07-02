@@ -1,13 +1,15 @@
-import React, {FC} from "react";
-import {Cell, Row, useTable} from "react-table";
+import React, { FC } from "react";
+import { Cell, Row, useTable } from "react-table";
+import { isMobile } from "react-device-detect";
 
 import { Colors, Direction } from "../../constants";
 import { leftColumns, rightColumns } from "./constants";
-import {ITableRow, ITableState} from "../../interfaces";
+import { ITableRow, ITableState } from "../../interfaces";
 
 interface IProps {
   depthVisualizerDirection?: Direction;
   data?: ITableState;
+  hideHeader?: boolean;
 }
 
 export const Table: FC<IProps> = (props: IProps) => {
@@ -33,25 +35,33 @@ export const Table: FC<IProps> = (props: IProps) => {
   return (
     <table
       {...getTableProps()}
-      style={{ tableLayout: "fixed", borderCollapse: "collapse", width: "50%" }}
+      style={{
+        tableLayout: "fixed",
+        borderCollapse: "collapse",
+        width: isMobile ? "100%" : "50%",
+      }}
     >
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <th
-                {...column.getHeaderProps()}
-                style={{
-                  color: Colors.grey,
-                  fontWeight: "bold",
-                }}
-              >
-                <div style={{ margin: "10px" }}>{column.render("Header")}</div>
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
+      {!props.hideHeader && (
+        <thead style={{ position: "sticky", top: "0", background: Colors.blue }}>
+          {headerGroups.map((headerGroup) => (
+            <tr {...headerGroup.getHeaderGroupProps()}>
+              {headerGroup.headers.map((column) => (
+                <th
+                  {...column.getHeaderProps()}
+                  style={{
+                    color: Colors.grey,
+                    fontWeight: "bold",
+                  }}
+                >
+                  <div style={{ margin: "10px" }}>
+                    {column.render("Header")}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+      )}
       <tbody
         {...getTableBodyProps()}
         style={{
@@ -70,7 +80,11 @@ export const Table: FC<IProps> = (props: IProps) => {
               {...row.getRowProps()}
               style={{
                 background: `linear-gradient(${
-                  depthVisualizerDirection === Direction.RIGHT ? "" : "-"
+                  depthVisualizerDirection === Direction.RIGHT
+                    ? isMobile
+                      ? "-"
+                      : ""
+                    : "-"
                 }90deg, ${
                   depthVisualizerDirection === Direction.RIGHT
                     ? Colors.opacityGreen

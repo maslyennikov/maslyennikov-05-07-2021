@@ -1,19 +1,14 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, {FC, useEffect, useRef, useState} from "react";
+import {isMobile} from "react-device-detect";
 
-import {
-  apiConfigValues,
-  Direction,
-  MarketProduct,
-  UIRefreshRate,
-  WSURL,
-} from "../../constants";
-import { ITableState } from "../../interfaces";
-import { WebSocketContext } from "../../contexts";
+import {apiConfigValues, Direction, MarketProduct, UIRefreshRate, WSURL,} from "../../constants";
+import {ITableState} from "../../interfaces";
+import {WebSocketContext} from "../../contexts";
 import WebsocketConnection from "../../WebsocketConnection";
 import Header from "../Header";
 import Table from "../Table";
-import { dataToTableState, groupBy, updateTableState } from "../../utils";
-import { FeedButtons } from "../FeedButtons/";
+import {dataToTableState, groupBy, updateTableState} from "../../utils";
+import {Footer} from "../Footer/";
 
 const App: FC = () => {
   const [ws, setWs] = useState<WebsocketConnection | null>(null);
@@ -31,7 +26,9 @@ const App: FC = () => {
     // refresh mechanism for the UI
     setInterval(() => {
       setAskTableState(dataToTableState(grouppedAskStateRef.current));
-      setBidTableState(dataToTableState(grouppedBidStateRef.current));
+      setBidTableState(
+        dataToTableState(grouppedBidStateRef.current, !isMobile)
+      );
     }, UIRefreshRate);
   }, []);
   useEffect(() => {
@@ -61,7 +58,11 @@ const App: FC = () => {
 
       if (data?.feed === apiConfigValues.book_ui) {
         askStateRef.current = updateTableState(askStateRef.current, data?.asks);
-        bidStateRef.current = updateTableState(bidStateRef.current, data?.bids);
+        bidStateRef.current = updateTableState(
+          bidStateRef.current,
+          data?.bids,
+          !isMobile
+        );
         grouppedBidStateRef.current = groupBy(
           bidStateRef.current,
           groupByValue
@@ -78,19 +79,20 @@ const App: FC = () => {
   return (
     <WebSocketContext.Provider value={ws}>
       <Header setGroupByValue={setGroupByValue} />
-      <FeedButtons
+      <Footer
         resetState={() => {
           setAskTableState([]);
           setBidTableState([]);
         }}
         setGroupByValue={setGroupByValue}
       />
-      <div style={{ display: "flex" }}>
+      <div style={{ display: isMobile ? "inline" : "flex" }}>
         <Table
           depthVisualizerDirection={Direction.LEFT}
           data={bidTableState || []}
         />
         <Table
+          hideHeader={isMobile}
           depthVisualizerDirection={Direction.RIGHT}
           data={askTableState || []}
         />

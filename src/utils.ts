@@ -3,13 +3,22 @@ import { ITableState } from "./interfaces";
 /**
  * Formats data to tableState
  * @param data: Array<Array<number>> - initial data
+ * @param smallestToLargest: boolean
  * @returns ITableState
  */
-export const dataToTableState = (data: Array<Array<number>>): ITableState => {
+export const dataToTableState = (
+  data: Array<Array<number>>,
+  smallestToLargest: boolean = true
+): ITableState => {
   const formattedData = [];
+  const dataCopy = [...data];
   let currentTotal = 0;
 
-  for (let pair of data) {
+  if (!smallestToLargest) {
+    dataCopy.reverse();
+  }
+
+  for (let pair of dataCopy) {
     currentTotal = currentTotal + pair[1];
     formattedData.push({
       col1: String(currentTotal),
@@ -18,7 +27,7 @@ export const dataToTableState = (data: Array<Array<number>>): ITableState => {
     });
   }
 
-  return formattedData;
+  return smallestToLargest ? formattedData : formattedData.reverse();
 };
 
 /**
@@ -57,11 +66,13 @@ export const groupBy = (
  * Updates state with new data from feed
  * @param data: Array<Array<number>> - initial data
  * @param newData: number - new data received from the feed
+ * @param smallestToLargest: boolean
  * @returns Array<Array<number>>
  */
 export const updateTableState = (
   data: Array<Array<number>>,
-  newData: Array<Array<number>>
+  newData: Array<Array<number>>,
+  smallestToLargest: boolean = true
 ): Array<Array<number>> => {
   let tableData: Array<Array<number>> = [...data];
 
@@ -92,9 +103,10 @@ export const updateTableState = (
         tableData.push(pair);
       }
 
-      tableData = tableData.sort((x: number[], y: number[]) =>
-        x[1] > y[1] ? 1 : -1
-      );
+      tableData = tableData.sort((x: number[], y: number[]) => {
+        if (smallestToLargest) return x[1] > y[1] ? 1 : -1;
+        else return x[1] > y[1] ? -1 : 1;
+      });
     }
 
     return tableData;
