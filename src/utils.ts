@@ -1,5 +1,10 @@
 import { ITableState } from "./interfaces";
 
+/**
+ * Formats data to tableState
+ * @param data: Array<Array<number>> - initial data
+ * @returns ITableState
+ */
 export const dataToTableState = (data: Array<Array<number>>): ITableState => {
   const formattedData = [];
   let currentTotal = 0;
@@ -16,25 +21,52 @@ export const dataToTableState = (data: Array<Array<number>>): ITableState => {
   return formattedData;
 };
 
-export const tableStatetoData = (
-  tableState: ITableState
+/**
+ * Formats data by the select markets ticket size
+ * @param data: Array<Array<number>> - initial data
+ * @param groupByValue: number - ticket size
+ * @returns Array<Array<number>>
+ */
+export const groupBy = (
+  data: Array<Array<number>>,
+  groupByValue: number
 ): Array<Array<number>> => {
-  const data = [];
-  for (let entry of tableState) {
-    data.push([Number(entry.col3), Number(entry.col2)]);
+  const groupTable: Array<Array<number>> = [];
+
+  // groupBy mechanism
+  for (let item of data) {
+    const groupKey = Number((item[0] - (item[0] % groupByValue)).toFixed(2));
+
+    const index = groupTable.findIndex(
+      (pair: Array<number>) => pair[0] === groupKey
+    );
+    if (index > -1) {
+      groupTable[index] = [
+        groupTable[index][0],
+        groupTable[index][1] + item[1],
+      ];
+    } else {
+      groupTable.push([groupKey, item[1]]);
+    }
   }
 
-  return data;
+  return groupTable;
 };
 
+/**
+ * Updates state with new data from feed
+ * @param data: Array<Array<number>> - initial data
+ * @param newData: number - new data received from the feed
+ * @returns Array<Array<number>>
+ */
 export const updateTableState = (
-  tableState: ITableState,
-  data: Array<Array<number>>
-) => {
-  let tableData = tableStatetoData(tableState);
+  data: Array<Array<number>>,
+  newData: Array<Array<number>>
+): Array<Array<number>> => {
+  let tableData: Array<Array<number>> = [...data];
 
   try {
-    for (let pair of data) {
+    for (let pair of newData) {
       const newPrice = pair[0];
       const newAmount = pair[1];
 
@@ -65,7 +97,7 @@ export const updateTableState = (
       );
     }
 
-    return dataToTableState(tableData);
+    return tableData;
   } catch (err) {
     console.log(err);
     return [];

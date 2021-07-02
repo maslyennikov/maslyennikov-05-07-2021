@@ -1,63 +1,91 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 
-import { apiConfigValues, Direction, WSURL } from "../../constants";
+import {
+  apiConfigValues,
+  Direction,
+  MarketProduct,
+  UIRefreshRate,
+  WSURL,
+} from "../../constants";
 import { ITableState } from "../../interfaces";
 import { WebSocketContext } from "../../contexts";
 import WebsocketConnection from "../../WebsocketConnection";
 import Header from "../Header";
 import Table from "../Table";
-import { dataToTableState, updateTableState } from "../../utils";
-import {FeedButtons} from "../FeedButtons/FeedButtons";
+import { dataToTableState, groupBy, updateTableState } from "../../utils";
+import { FeedButtons } from "../FeedButtons/";
 
-function App() {
+const App: FC = () => {
   const [ws, setWs] = useState<WebsocketConnection | null>(null);
   const [askTableState, setAskTableState] = useState<ITableState>();
   const [bidTableState, setBidTableState] = useState<ITableState>();
+  const [groupByValue, setGroupByValue] = useState<number>(0.5);
+
+  // updating state without triggering re-renders
+  const bidStateRef = useRef<Array<Array<number>>>([]);
+  const askStateRef = useRef<Array<Array<number>>>([]);
+  const grouppedBidStateRef = useRef<Array<Array<number>>>([]);
+  const grouppedAskStateRef = useRef<Array<Array<number>>>([]);
 
   useEffect(() => {
+    // refresh mechanism for the UI
+    setInterval(() => {
+      setAskTableState(dataToTableState(grouppedAskStateRef.current));
+      setBidTableState(dataToTableState(grouppedBidStateRef.current));
+    }, UIRefreshRate);
+  }, []);
+  useEffect(() => {
+    // initializing websocket connection
     const wsConnection = new WebsocketConnection(WSURL);
     const onMessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
 
       if (data?.feed === apiConfigValues.snapshot) {
-        setAskTableState(dataToTableState(data?.asks));
-        setBidTableState(dataToTableState(data?.bids));
+        bidStateRef.current = data?.asks;
+        askStateRef.current = data?.bids;
       }
     };
     wsConnection.setOnMessage(onMessage);
-    wsConnection.subscribe("PI_XBTUSD");
+    wsConnection.subscribe(MarketProduct.PI_XBTUSD);
     setWs(wsConnection);
   }, []);
   useEffect(() => {
+    // updating onMessage hook every time askTableState/bidTableState/groupByValue updates
     const onMessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
 
       if (data?.feed === apiConfigValues.snapshot) {
-        setAskTableState(dataToTableState(data?.asks));
-        setBidTableState(dataToTableState(data?.bids));
+        bidStateRef.current = data?.asks;
+        askStateRef.current = data?.bids;
       }
 
       if (data?.feed === apiConfigValues.book_ui) {
-        if (askTableState) {
-          setAskTableState(updateTableState(askTableState, data?.asks));
-        }
-
-        if (bidTableState) {
-          setBidTableState(updateTableState(bidTableState, data?.bids));
-        }
+        askStateRef.current = updateTableState(askStateRef.current, data?.asks);
+        bidStateRef.current = updateTableState(bidStateRef.current, data?.bids);
+        grouppedBidStateRef.current = groupBy(
+          bidStateRef.current,
+          groupByValue
+        );
+        grouppedAskStateRef.current = groupBy(
+          askStateRef.current,
+          groupByValue
+        );
       }
     };
     ws?.setOnMessage(onMessage);
-  }, [askTableState, bidTableState, ws]);
+  }, [askTableState, bidTableState, ws, groupByValue]);
 
   return (
     <WebSocketContext.Provider value={ws}>
-      <Header />
-      <FeedButtons resetState={() => {
-        setAskTableState([]);
-        setBidTableState(([]));
-      }}/>
-      <div style={{ display: "flex"}}>
+      <Header setGroupByValue={setGroupByValue} />
+      <FeedButtons
+        resetState={() => {
+          setAskTableState([]);
+          setBidTableState([]);
+        }}
+        setGroupByValue={setGroupByValue}
+      />
+      <div style={{ display: "flex" }}>
         <Table
           depthVisualizerDirection={Direction.LEFT}
           data={bidTableState || []}
@@ -69,6 +97,6 @@ function App() {
       </div>
     </WebSocketContext.Provider>
   );
-}
+};
 
 export default App;

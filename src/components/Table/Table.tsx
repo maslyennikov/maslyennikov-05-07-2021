@@ -1,15 +1,16 @@
-import React from "react";
-import { useTable } from "react-table";
+import React, {FC} from "react";
+import {Cell, Row, useTable} from "react-table";
+
 import { Colors, Direction } from "../../constants";
 import { leftColumns, rightColumns } from "./constants";
-import { ITableState } from "../../interfaces";
+import {ITableRow, ITableState} from "../../interfaces";
 
 interface IProps {
   depthVisualizerDirection?: Direction;
   data?: ITableState;
 }
 
-export const Table = (props: IProps) => {
+export const Table: FC<IProps> = (props: IProps) => {
   const { data, depthVisualizerDirection } = props;
 
   const columns =
@@ -17,7 +18,7 @@ export const Table = (props: IProps) => {
 
   let maxTotal: number = 0;
 
-  data?.forEach((row) => {
+  data?.forEach((row: ITableRow) => {
     const currentTotal = parseFloat(row.col1);
 
     if (currentTotal > maxTotal) {
@@ -51,12 +52,15 @@ export const Table = (props: IProps) => {
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()} style={{
-        overflowY: 'scroll',
-        overflowX: 'hidden',
-        height: '250px'
-      }}>
-        {rows.map((row) => {
+      <tbody
+        {...getTableBodyProps()}
+        style={{
+          overflowY: "scroll",
+          overflowX: "hidden",
+          height: "250px",
+        }}
+      >
+        {rows.map((row: Row<ITableRow>) => {
           const depthVisualizerPercentage =
             (parseFloat(row.values["col1"]) / maxTotal) * 100;
           prepareRow(row);
@@ -74,7 +78,7 @@ export const Table = (props: IProps) => {
                 } ${depthVisualizerPercentage}%, ${Colors.transparent} 0%)`,
               }}
             >
-              {row.cells.map((cell) => (
+              {row.cells.map((cell: Cell<ITableRow>) => (
                 <td
                   {...cell.getCellProps()}
                   style={{
