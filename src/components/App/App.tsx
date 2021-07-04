@@ -1,14 +1,20 @@
-import React, {FC, useEffect, useRef, useState} from "react";
-import {isMobile} from "react-device-detect";
+import React, { FC, useEffect, useRef, useState } from "react";
+import { isMobile } from "react-device-detect";
 
-import {apiConfigValues, Direction, MarketProduct, UIRefreshRate, WSURL,} from "../../constants";
-import {ITableState} from "../../interfaces";
-import {WebSocketContext} from "../../contexts";
+import {
+  apiConfigValues,
+  Direction,
+  MarketProduct,
+  UIRefreshRate,
+  WSURL,
+} from "../../constants";
+import { ITableState } from "../../interfaces";
+import { WebSocketContext } from "../../contexts";
 import WebsocketConnection from "../../WebsocketConnection";
 import Header from "../Header";
 import Table from "../Table";
-import {dataToTableState, groupBy, updateTableState} from "../../utils";
-import {Footer} from "../Footer/";
+import { dataToTableState, groupBy, updateTableState } from "../../utils";
+import { Footer } from "../Footer/";
 
 const App: FC = () => {
   const [ws, setWs] = useState<WebsocketConnection | null>(null);
@@ -37,6 +43,12 @@ const App: FC = () => {
     const onMessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
 
+      if (data.event === "alert") {
+        alert(
+          `Error received on the socket connection with message: ${data.message}`
+        );
+      }
+
       if (data?.feed === apiConfigValues.snapshot) {
         bidStateRef.current = data?.asks;
         askStateRef.current = data?.bids;
@@ -50,13 +62,24 @@ const App: FC = () => {
     // updating onMessage hook every time askTableState/bidTableState/groupByValue updates
     const onMessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
+      console.log(data?.event);
+
+      if (data.event === "alert") {
+        alert(
+          `Error received on the socket connection with message: ${data.message}`
+        );
+      }
 
       if (data?.feed === apiConfigValues.snapshot) {
         bidStateRef.current = data?.asks;
         askStateRef.current = data?.bids;
       }
 
-      if (data?.feed === apiConfigValues.book_ui) {
+      // I noticed that if data?.event is undefined than this is a data update so I rely on that here
+      if (
+        data?.feed === apiConfigValues.book_ui &&
+        !data?.event
+      ) {
         askStateRef.current = updateTableState(askStateRef.current, data?.asks);
         bidStateRef.current = updateTableState(
           bidStateRef.current,

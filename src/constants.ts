@@ -1,5 +1,5 @@
 export const WSURL: string = "wss://www.cryptofacilities.com/ws/v1";
-export const UIRefreshRate = 500 // value is in ms
+export const UIRefreshRate = 500; // value is in ms
 
 export const Colors: Record<string, string> = {
   white: "rgba(255, 255, 255)",
@@ -10,7 +10,8 @@ export const Colors: Record<string, string> = {
   opacityGreen: "rgba(13, 136, 100, 0.2)",
   transparent: "rgba(255, 0, 0, 0)",
   lightgrey: "rgba(53, 63, 79)",
-  blue: "#111827"
+  blue: "rgba(17, 24, 39, 1)",
+  purple: "rgba(87, 65, 217, 255)",
 };
 
 export enum Direction {

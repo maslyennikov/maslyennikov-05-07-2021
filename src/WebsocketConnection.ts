@@ -10,6 +10,11 @@ class WebsocketConnection {
     this.ws.onmessage = onMessage;
   }
 
+  throwError() {
+    this.ws.send('throwError');
+    this.unsubscribe();
+  }
+
   subscribe(productId: string) {
     const message = {
       event: "subscribe",

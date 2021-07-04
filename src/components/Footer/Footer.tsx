@@ -1,14 +1,16 @@
 import React, {
-  useContext,
+  Dispatch,
   FC,
   MemoExoticComponent,
-  Dispatch,
   SetStateAction,
+  useContext,
+  useState,
 } from "react";
 
 import { WebSocketContext } from "../../contexts";
 import WebsocketConnection from "../../WebsocketConnection";
-import {Colors, groupValues, MarketProduct} from "../../constants";
+import Button from "../Button";
+import { Colors, groupValues, MarketProduct } from "../../constants";
 
 interface IProps {
   resetState: () => void;
@@ -17,6 +19,7 @@ interface IProps {
 
 const Footer: MemoExoticComponent<FC<IProps>> = React.memo((props: IProps) => {
   const ws: WebsocketConnection | null = useContext(WebSocketContext);
+  const [shouldResetFeed, setShouldResetFeed] = useState<boolean>(false);
 
   return (
     <div
@@ -30,18 +33,7 @@ const Footer: MemoExoticComponent<FC<IProps>> = React.memo((props: IProps) => {
         width: "100%",
       }}
     >
-      <button
-        onClick={() => {
-          ws?.kill();
-        }}
-        style={{
-          color: "white",
-          background: "purple",
-        }}
-      >
-        UNSUBSCRIBE
-      </button>
-      <button
+      <Button
         onClick={() => {
           ws?.unsubscribe();
           props.resetState();
@@ -57,13 +49,28 @@ const Footer: MemoExoticComponent<FC<IProps>> = React.memo((props: IProps) => {
               : groupValues[MarketProduct.PI_XBTUSD][0]
           );
         }}
-        style={{
-          color: "white",
-          background: "red",
+        backgroundColor={Colors.purple}
+        icon={"./toggle-feed.svg"}
+        text={"Toggle Feed"}
+      />
+      <Button
+        onClick={() => {
+          if (!shouldResetFeed) {
+              ws?.throwError();
+              setShouldResetFeed(true);
+          } else {
+              setShouldResetFeed(false);
+              ws?.subscribe(
+                  WebsocketConnection.subscribedProductId === MarketProduct.PI_XBTUSD
+                      ? MarketProduct.PI_XBTUSD
+                      : MarketProduct.PI_ETHUSD
+              );
+          }
         }}
-      >
-        TOGGLE
-      </button>
+        backgroundColor={Colors.red}
+        text={"Kill Feed"}
+        icon={"./kill-feed.svg"}
+      />
     </div>
   );
 });

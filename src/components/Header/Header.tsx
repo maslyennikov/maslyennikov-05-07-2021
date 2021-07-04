@@ -45,7 +45,7 @@ const Header: FC<IProps> = (props: IProps) => {
               ? MarketProduct.PI_XBTUSD
               : MarketProduct.PI_ETHUSD
           ].map((value: number) => (
-            <option value={value}>{`Group ${value}`}</option>
+            <option key={value} value={value}>{`Group ${value}`}</option>
           ))}
         </select>
       </div>
