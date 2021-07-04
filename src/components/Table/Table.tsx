@@ -8,6 +8,7 @@ import { ITableRow, ITableState } from "../../interfaces";
 
 interface IProps {
   depthVisualizerDirection?: Direction;
+  direction: Direction;
   data?: ITableState;
   hideHeader?: boolean;
 }
@@ -16,7 +17,7 @@ export const Table: FC<IProps> = (props: IProps) => {
   const { data, depthVisualizerDirection } = props;
 
   const columns =
-    depthVisualizerDirection === Direction.RIGHT ? rightColumns : leftColumns;
+    props.direction === Direction.RIGHT ? rightColumns : leftColumns;
 
   let maxTotal: number = 0;
 
@@ -42,7 +43,9 @@ export const Table: FC<IProps> = (props: IProps) => {
       }}
     >
       {!props.hideHeader && (
-        <thead style={{ position: "sticky", top: "0", background: Colors.blue }}>
+        <thead
+          style={{ position: "sticky", top: "0", background: Colors.blue }}
+        >
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
@@ -98,7 +101,11 @@ export const Table: FC<IProps> = (props: IProps) => {
                   style={{
                     padding: "10px",
                     color:
-                      cell.column.id === "col3" ? Colors.green : Colors.white,
+                      cell.column.id === "col3"
+                        ? depthVisualizerDirection === Direction.RIGHT
+                          ? Colors.green
+                          : Colors.red
+                        : Colors.white,
                     textAlign: "center",
                     fontFamily: "Monaco",
                   }}

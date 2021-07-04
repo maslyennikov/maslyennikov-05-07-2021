@@ -20,6 +20,7 @@ export const dataToTableState = (
 
   for (let pair of dataCopy) {
     currentTotal = currentTotal + pair[1];
+
     formattedData.push({
       col1: String(currentTotal),
       col2: String(pair[1]),
@@ -97,7 +98,7 @@ export const updateTableState = (
 
       if (entryIndex > -1) {
         //replacing amount if entry exists
-        tableData[entryIndex][1] = newAmount;
+        tableData[entryIndex][1] = tableData[entryIndex][1] + newAmount;
       } else {
         //adding new entry to the table
         tableData.push(pair);

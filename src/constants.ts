@@ -3,7 +3,7 @@ export const UIRefreshRate = 500; // value is in ms
 
 export const Colors: Record<string, string> = {
   white: "rgba(255, 255, 255)",
-  red: "rgba(255, 0, 0)",
+  red: "rgba(180, 0, 0)",
   green: "rgba(13, 136, 100)",
   grey: "rgba(89, 96, 110)",
   opacityRed: "rgba(255, 0, 0, 0.2)",
